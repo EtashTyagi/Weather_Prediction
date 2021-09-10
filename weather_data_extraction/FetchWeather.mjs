@@ -13,12 +13,12 @@ key=${apiKey}
 const startDate = "2009-01-01"
 const findCity = "Delhi" // Change This For Different
 
-/** For whole day */
+/** For whole day, got directly */
 const directParams = {
     "date": (dayData) => dayData["date"],
-    "Max Temp (°c)": (dayData) => dayData["maxtempC"],
-    "Min Temp (°c)": (dayData) => dayData["mintempC"],
-    "Avg Temp (°c)": (dayData) => dayData["avgtempC"],
+    "Max Temp (c)": (dayData) => dayData["maxtempC"],
+    "Min Temp (c)": (dayData) => dayData["mintempC"],
+    "Avg Temp (c)": (dayData) => dayData["avgtempC"],
     "Snow (cm)": (dayData) => dayData["totalSnow_cm"],
     "Sun Time (Hours)": (dayData) => dayData["sunHour"],
     "UV Index": (dayData) => dayData["uvIndex"]
@@ -50,11 +50,17 @@ const derivedParams = {
                 .reduce((acc, cur) => acc + cur)
         ),
 
-    "Avg Resultant Wind vector [E, N](km/h)": // Vector addition of hourly winds
+    "Avg Resultant Wind vector [E](km/h)": // Vector addition of hourly winds
         (hourly) => {
             const windVectors = extractWindVectors(hourly);
             const resultant = windVectors.reduce((acc, cur) => ([acc[0] + cur[0], acc[1] + cur[1]]));
-            return resultant.map(k => k / hourly.length)
+            return (resultant.map(k => k / hourly.length))[0]
+        },
+    "Avg Resultant Wind vector [N](km/h)": // Vector addition of hourly winds
+        (hourly) => {
+            const windVectors = extractWindVectors(hourly);
+            const resultant = windVectors.reduce((acc, cur) => ([acc[0] + cur[0], acc[1] + cur[1]]));
+            return (resultant.map(k => k / hourly.length))[1]
         },
 }
 
@@ -138,7 +144,6 @@ const getAllData = async (city) => {
         else {
             console.log("File written successfully\n");
             console.log("The written has the following contents:");
-            console.log(fs.readFileSync("books.txt", "utf8"));
         }
     });
 })()
