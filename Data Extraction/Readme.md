@@ -3,4 +3,6 @@ To Get Data
 ### Edit findCity in FetchWeather.mjs
 To change city
 ### Result in
-Data folder
+data folder in this directory
+### Convert To CSV
+Click [here](https://www.convertcsv.com/json-to-csv.htm)
