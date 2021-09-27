@@ -1,17 +1,19 @@
 import fetch from "node-fetch";
 import requirejs from "requirejs"
 
-const apiKey = "79f8ca5aa22a46ebb9192046210809"
+const apiKey = "39c3606dee2f4a4f9b5152122212709"// "79f8ca5aa22a46ebb9192046210809"
 
-const getRequestLink = (city, startDate, endDate) => (`http://api.worldweatheronline.com/premium/v1/past-weather.ashx?
+const getRequestLink = (latLon, startDate, endDate) => (`http://api.worldweatheronline.com/premium/v1/past-weather.ashx?
 key=${apiKey}
-&q=${city}
+&q=${latLon}
 &format=json
 &date=${startDate}
 &enddate=${endDate}`);
 
 const startDate = "2009-01-01"
-const findCity = "Delhi" // Change This For Different
+const findLat = 28.645
+const findLon = 77.217 // LatLon of Delhi
+const city_distance_km = [20, 100, 500] // North South East West len(..) cities are generated
 
 /** For whole day, got directly */
 const directParams = {
@@ -64,17 +66,11 @@ const derivedParams = {
         },
 }
 
-/** Need to do later, currently do by hand */
-const fillOnOwnParams = {
-    "latitude": "",
-    "longitude": ""
-}
-
-const fetchAllData = async (city, startDate, endDate) => {
+const fetchAllData = async (latLon, startDate, endDate) => {
     if (endDate < startDate) {
         return null;
     } else {
-        const response = await fetch(getRequestLink(city, startDate, endDate));
+        const response = await fetch(getRequestLink(latLon, startDate, endDate));
         return await response.json()
     }
 }
@@ -85,13 +81,11 @@ const processRawData = (rawData) => {
         console.error("Error Fetching data, received:", rawData["data"]["error"][0])
         return null;
     }
-    if (rawData["data"]["request"][0].type !== 'City') {
-        console.error("Not a city:", rawData["data"]["request"][0].query)
+    if (rawData["data"]["request"][0].type !== 'LatLon') {
+        console.error("Not a LatLon:", rawData["data"]["request"][0].query)
         return null;
     }
     let extractedData = {
-        ...fillOnOwnParams,
-        "city": rawData["data"]["request"][0].query,
         "dayWiseData": []
     };
     for (let i = 0; i < rawData["data"]["weather"].length; i++) {
@@ -111,7 +105,7 @@ const processRawData = (rawData) => {
     ]
 }
 
-const getAllData = async (city) => {
+const getAllData = async (latLon) => {
     let nextStart = new Date(startDate.replace( /(\d{2})-(\d{2})-(\d{4})/, "$2/$3/$1"))
     let endDate = new Date();
     let answer = null
@@ -119,7 +113,7 @@ const getAllData = async (city) => {
         const stringStartDate = nextStart.toISOString().split('T')[0]
         const stringEndDate = endDate.toISOString().split('T')[0]
         let got = processRawData(
-            await fetchAllData(city, stringStartDate, stringEndDate)
+            await fetchAllData(latLon, stringStartDate, stringEndDate)
         )
         if (got === null) {
             return null
@@ -130,15 +124,15 @@ const getAllData = async (city) => {
         }
         nextStart = new Date(got[1].replace( /(\d{2})-(\d{2})-(\d{4})/, "$2/$3/$1"))
         nextStart.setDate(nextStart.getDate() + 1)
-        console.log(got[1])
+        console.log(got[1], latLon)
     }
     return answer
 }
 
-/** Main Function */
-(async () => {
-    const fs = requirejs("fs");
-    fs.writeFile(`./data/${findCity}.json`, JSON.stringify(await getAllData(findCity)), (err) => {
+const fs = requirejs("fs");
+const saveDataFor = async (fileName, latitude, longitude) =>{
+    fs.writeFile(`./data/${fileName}.json`, JSON.stringify(await getAllData(
+        `${latitude.toFixed(3)},${longitude.toFixed(3)}`)), (err) => {
         if (err)
             console.log(err);
         else {
@@ -146,6 +140,34 @@ const getAllData = async (city) => {
             console.log("The written has the following contents:");
         }
     });
+}
+
+/** Main Function */
+(async () => {
+
+    //AT GIVEN LAT LON
+    await saveDataFor("Delhi", findLat, findLon)
+
+    // At asked Distances
+    for (const distanceKey in city_distance_km) {
+        let distance = city_distance_km[distanceKey]
+
+        // North
+        let newLat = findLat + north_distance_to_latitude_difference(distance)
+        await saveDataFor(`North_${distance}`, newLat, findLon)
+
+        // South
+        newLat = findLat + north_distance_to_latitude_difference(-distance)
+        await saveDataFor(`South_${distance}`, newLat, findLon)
+
+        // East
+        let newLon = findLon + east_distance_to_longitude_difference(distance, findLat)
+        await saveDataFor(`East_${distance}`, findLat, newLon)
+
+        // West
+        newLon = findLon + east_distance_to_longitude_difference(-distance, findLat)
+        await saveDataFor(`West_${distance}`, findLat, newLon)
+    }
 })()
 
 
@@ -163,4 +185,19 @@ function extractWindVectors(hourly) {
         let windD = parseFloat(cur["winddirDegree"]), windS = parseFloat(cur["windspeedKmph"]);
         return [windS * cosDeg(windD), windS * sinDeg(windD)]
     })
+}
+
+function east_distance_to_longitude_difference(distance_km, latitude) {
+    const R_EARTH = 6378.1 //KM
+    const K = Math.pow(Math.tan(distance_km / (2* R_EARTH)), 2)
+    console.log(K)
+    console.log(K / (Math.pow(cosDeg(latitude), 2)*(K+1)))
+    const longitude_diff_rad = 2 * Math.asin(Math.sqrt((K) /
+        (Math.pow(cosDeg(latitude), 2)*(K+1))))
+
+    return longitude_diff_rad * 180.0 / Math.PI * Math.sign(distance_km)
+}
+
+function north_distance_to_latitude_difference(distance_km) {
+    return distance_km / 111.0
 }
