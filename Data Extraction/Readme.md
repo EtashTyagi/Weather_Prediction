@@ -1,7 +1,9 @@
 ### Run FetchWeather.mjs
 To Get Data.
-### Edit findCity in FetchWeather.mjs
+### Edit findLat and findLon in FetchWeather.mjs
 To change city.
+### Edit findLat and findLon in FetchWeather.mjs
+To change distances
 ### Result in
 ./data folder. (Empty File to prevent github from deleting folder)
 ### Convert To CSV
