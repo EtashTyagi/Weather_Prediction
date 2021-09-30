@@ -1,4 +1,4 @@
-dayWiseData/date,dayWiseData/Max Temp (c),dayWiseData/Min Temp (c),dayWiseData/Avg Temp (c),dayWiseData/Snow (cm),dayWiseData/Sun Time (Hours),dayWiseData/UV Index,dayWiseData/Total Precipitation (MM),dayWiseData/Avg Pressure (P),dayWiseData/Avg Humidity (%),dayWiseData/Avg Cloud Cover,dayWiseData/Avg Resultant Wind vector [E](km/h),dayWiseData/Avg Resultant Wind vector [N](km/h)
+date,Max Temp (c),Min Temp (c),Avg Temp (c),Snow (cm),Sun Time (Hours),UV Index,Total Precipitation (MM),Avg Pressure (P),Avg Humidity (%),Avg Cloud Cover,Avg Resultant Wind vector [E](km/h),Avg Resultant Wind vector [N](km/h)
 2009-01-01,22,9,16,0.0,8.7,5,0,1015.875,40.125,6.125,6.43767625,-8.947387500000001
 2009-01-02,23,9,17,0.0,8.7,5,0,1017,54.5,2.25,0.37010375000000006,0.23280374999999992
 2009-01-03,23,8,16,0.0,8.7,5,0,1016.875,57.25,9,-1.58133875,3.11949
